@@ -25,7 +25,7 @@ if __name__ == "__main__":
     with open("datasets/sample.json", 'r') as f:
         query_instance = json.load(f)
 
-    dice_exp = exp.generate_counterfactuals(query_instance, total_CFs=4, desired_class="opposite", features_to_vary = ["gmv_tn",  "coupon_fee_tn", "jhs_num_tn", "jhs_gmv_tn", "paid_order_num_last5m", "gmv_last5m"])
+    dice_exp = exp.generate_counterfactuals(query_instance, total_CFs=4, desired_target = 1.1, features_to_vary = ["gmv_tn",  "coupon_fee_tn", "jhs_num_tn", "jhs_gmv_tn", "paid_order_num_last5m", "gmv_last5m"])
     
     print("original instance")
     print(dice_exp.org_instance)
