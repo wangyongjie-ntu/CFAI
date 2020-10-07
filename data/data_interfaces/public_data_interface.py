@@ -148,7 +148,7 @@ class PublicData:
             max_value = self.train_df[feature_name].max()
             min_value = self.train_df[feature_name].min()
             result[feature_name] = (
-                df[feature_name] - min_value) / (max_value - min_value)
+                df[feature_name] - min_value) / (max_value - min_value + 1e-10) # avoid the 0 denominator
         return result
 
     def de_normalize_data(self, df):
@@ -158,7 +158,7 @@ class PublicData:
             max_value = self.train_df[feature_name].max()
             min_value = self.train_df[feature_name].min()
             result[feature_name] = (
-                df[feature_name]*(max_value - min_value)) + min_value
+                df[feature_name] * (max_value - min_value)) + min_value
         return result
 
     def get_minx_maxx(self, normalized=True):
@@ -172,9 +172,9 @@ class PublicData:
 
             if normalized:
                 minx[0][idx] = (self.permitted_range[feature_name]
-                                [0] - min_value) / (max_value - min_value + 1e-10)
+                                [0] - min_value) / (max_value - min_value + 1e-10) # avoid the 0 denominator
                 maxx[0][idx] = (self.permitted_range[feature_name]
-                                [1] - min_value) / (max_value - min_value + 1e-10)
+                                [1] - min_value) / (max_value - min_value + 1e-10) # avoid the 0 denominator
             else:
                 minx[0][idx] = self.permitted_range[feature_name][0]
                 maxx[0][idx] = self.permitted_range[feature_name][1]
@@ -264,8 +264,7 @@ class PublicData:
     def from_dummies(self, data, prefix_sep='_'):
         """Gets the original data from dummy encoded data with k levels."""
         out = data.copy()
-        for feat in self.categorical_feature_names:
-            # first, derive column names in the one-hot-encoded data from the original data
+        for feat in self.categorical_feature_names: # first, derive column names in the one-hot-encoded data from the original data
             cat_col_values = []
             for val in list(self.data_df[feat].unique()):
                 cat_col_values.append(feat + prefix_sep + str(val)) # join original feature name and its unique values , ex: education_school
