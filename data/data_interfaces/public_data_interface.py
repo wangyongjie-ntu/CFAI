@@ -29,16 +29,6 @@ class PublicData:
         else:
             raise ValueError("should provide a pandas dataframe")
         
-        '''
-        if type(params['continuous_features']) is list:
-            self.continuous_feature_names = params['continuous_features']
-            self.categorical_feature_names = [name for name in self.data_df.columns.tolist(
-            ) if name not in self.continuous_feature_names]
-        else:
-            raise ValueError(
-                "should provide the name(s) of continuous features in the data")
-        '''
-
         if type(params['categorical_features']) is list:
             self.categorical_feature_names = params['categorical_features']
             self.continuous_feature_names = [name for name in self.data_df.columns.tolist(
@@ -362,50 +352,3 @@ class PublicData:
 
             return temp.tail(test.shape[0]).reset_index(drop=True)
 
-    def get_dev_data(self, model_interface, desired_class, filter_threshold=0.5):
-        """Constructs dev data by extracting part of the test data for which finding counterfactuals make sense."""
-
-        # create TensorFLow session if one is not already created
-        if tf.get_default_session() is not None:
-            self.data_sess = tf.get_default_session()
-        else:
-            self.data_sess = tf.InteractiveSession()
-
-        # loading trained model
-        model_interface.load_model()
-
-        # get the permitted range of change for each feature
-        minx, maxx = self.get_minx_maxx(normalized=True)
-
-        # get the transformed data: continuous features are normalized to fall in the range [0,1], and categorical features are one-hot encoded
-        data_df_transformed = self.normalize_data(self.one_hot_encoded_data)
-
-        # split data - nomralization considers only train df and there is no leakage due to transformation before train-test splitting
-        _, test = self.split_data(data_df_transformed)
-        test = test.drop_duplicates(
-            subset=self.encoded_feature_names).reset_index(drop=True)
-
-        # finding target predicted probabilities
-        input_tensor = tf.Variable(minx, dtype=tf.float32)
-        output_tensor = model_interface.get_output(
-            input_tensor)  # model(input_tensor)
-        temp_data = test[self.encoded_feature_names].values.astype(np.float32)
-        dev_preds = [self.data_sess.run(output_tensor, feed_dict={
-                                        input_tensor: np.array([dt])}) for dt in temp_data]
-        dev_preds = [dev_preds[i][0][0] for i in range(len(dev_preds))]
-
-        # filtering examples which have predicted value >/< threshold
-        dev_data = test[self.encoded_feature_names]
-        if desired_class == 0:
-            idxs = [i for i in range(len(dev_preds))
-                    if dev_preds[i] > filter_threshold]
-        else:
-            idxs = [i for i in range(len(dev_preds))
-                    if dev_preds[i] < filter_threshold]
-        dev_data = dev_data.iloc[idxs]
-        dev_preds = [dev_preds[i] for i in idxs]
-
-        # convert from one-hot encoded vals to user interpretable fromat
-        dev_data = self.from_dummies(dev_data)
-        dev_data = self.de_normalize_data(dev_data)
-        return dev_data[self.feature_names], dev_preds  # values.tolist()
