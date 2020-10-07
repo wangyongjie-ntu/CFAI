@@ -16,7 +16,7 @@ class Model(BaseModel):
 
     def load_model(self):
         if self.model_path != '':
-            self.model = torch.load(self.model_path)
+            self.model = torch.load(self.model_path).cpu()
 
     def get_output(self, input_tensor):
         return self.model(input_tensor).float()

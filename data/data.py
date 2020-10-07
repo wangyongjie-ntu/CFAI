@@ -2,6 +2,7 @@
 
 DiCE requires only few parameters about the data such as the range of continuous features and the levels of categorical features. Hence, DiCE can be used for a private data whose meta data are only available (such as the feature names and range/levels of different features) by specifying appropriate parameters.
 """
+
 class Data:
     """Class containing all required information about the data for DiCE."""
 

@@ -5,19 +5,17 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import logging
 
-import tensorflow as tf
-from tensorflow import keras
-
 
 class PublicData:
     """A data interface for public data."""
 
     def __init__(self, params):
+
         """Init method
 
         :param dataframe: Pandas DataFrame.
         :param continuous_features: List of names of continuous features. The remaining features are categorical features.
-        :param outcome_name: Outcome feature name.
+        :param target: Outcome feature name.
         :param permitted_range (optional): Dictionary with feature names as keys and permitted range in list as values. Defaults to the range inferred from training data.
         :param test_size (optional): Proportion of test set split. Defaults to 0.2.
         :param test_split_random_state (optional): Random state for train test split. Defaults to 17.
@@ -30,20 +28,30 @@ class PublicData:
             self.data_df = params['dataframe']
         else:
             raise ValueError("should provide a pandas dataframe")
-
+        
+        '''
         if type(params['continuous_features']) is list:
             self.continuous_feature_names = params['continuous_features']
+            self.categorical_feature_names = [name for name in self.data_df.columns.tolist(
+            ) if name not in self.continuous_feature_names]
+        else:
+            raise ValueError(
+                "should provide the name(s) of continuous features in the data")
+        '''
+
+        if type(params['categorical_features']) is list:
+            self.categorical_feature_names = params['categorical_features']
+            self.continuous_feature_names = [name for name in self.data_df.columns.tolist(
+            ) if name not in self.categorical_feature_names and name not in params['target']]
         else:
             raise ValueError(
                 "should provide the name(s) of continuous features in the data")
 
-        if type(params['outcome_name']) is str:
-            self.outcome_name = params['outcome_name']
+        if type(params['target']) is str:
+            self.outcome_name = params['target']
         else:
             raise ValueError("should provide the name of outcome feature")
 
-        self.categorical_feature_names = [name for name in self.data_df.columns.tolist(
-        ) if name not in self.continuous_feature_names+[self.outcome_name]]
 
         self.feature_names = [
             name for name in self.data_df.columns.tolist() if name != self.outcome_name]
@@ -174,9 +182,9 @@ class PublicData:
 
             if normalized:
                 minx[0][idx] = (self.permitted_range[feature_name]
-                                [0] - min_value) / (max_value - min_value)
+                                [0] - min_value) / (max_value - min_value + 1e-10)
                 maxx[0][idx] = (self.permitted_range[feature_name]
-                                [1] - min_value) / (max_value - min_value)
+                                [1] - min_value) / (max_value - min_value + 1e-10)
             else:
                 minx[0][idx] = self.permitted_range[feature_name][0]
                 maxx[0][idx] = self.permitted_range[feature_name][1]

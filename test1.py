@@ -9,16 +9,15 @@ from model.model import Model
 from utils import helpers
 
 import torch
-torch.set_default_dtype(torch.float32)
+import pandas as pd
 
 if __name__ == "__main__":
 
     dataset = helpers.load_adult_income_dataset()
 
-    print(dataset.head())
+    #print(dataset.head())
 
     adult_info = helpers.get_adult_data_info()
-    print(adult_info)
     d = Data(dataframe=dataset, continuous_features=['age', 'hours_per_week'], outcome_name='income')
     m = Model(model_path= "./weigths/adult.pth")
     exp = DicePyTorch(d, m)
@@ -32,6 +31,12 @@ if __name__ == "__main__":
                   'gender':'Female',
                   'hours_per_week': 45}
 
-    dice_exp = exp.generate_counterfactuals(query_instance, total_CFs=4, desired_class="opposite")
+    dice_exp = exp.generate_counterfactuals(query_instance, total_CFs=4, desired_class="opposite", features_to_vary = ["education", "marital_status", "occupation", "hours_per_week"])
+    
+    print("original instance")
+    print(dice_exp.org_instance)
 
-    print(dice_exp)
+    print("counterfactual instances found")
+    print(dice_exp.final_cfs_list)
+
+
