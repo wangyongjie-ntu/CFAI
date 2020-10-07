@@ -46,13 +46,13 @@ class DicePyTorch(ExplainerBase):
         temp_input = torch.rand([len(self.data_interface.encoded_feature_names)]).float()
         self.num_ouput_nodes = len(self.model.get_output(temp_input).data)
 
-    def generate_counterfactuals(self, query_instance, total_CFs, desired_class="opposite", proximity_weight=0.5, diversity_weight=1.0, categorical_penalty=0.1, algorithm="DiverseCF", features_to_vary="all", yloss_type="hinge_loss", diversity_loss_type="dpp_style:inverse_dist", feature_weights="inverse_mad", optimizer="pytorch:adam", learning_rate=0.05, min_iter=500, max_iter=5000, project_iter=0, loss_diff_thres=1e-5, loss_converge_maxiter=1, verbose=False, init_near_query_instance=True, tie_random=False, stopping_threshold=0.5, posthoc_sparsity_param=0.1, posthoc_sparsity_algorithm="linear"):
+    def generate_counterfactuals(self, query_instance, total_CFs, desired_target = 1.1, proximity_weight=0.5, diversity_weight=1.0, categorical_penalty=0.1, algorithm="DiverseCF", features_to_vary="all", yloss_type="l2_loss", diversity_loss_type="dpp_style:inverse_dist", feature_weights="inverse_mad", optimizer="pytorch:adam", learning_rate= 0.2, min_iter=500, max_iter=5000, project_iter=0, loss_diff_thres=1e-5, loss_converge_maxiter=1, verbose=False, init_near_query_instance=True, tie_random=False, stopping_threshold=0.5, posthoc_sparsity_param=0.1, posthoc_sparsity_algorithm="linear"):
         """Generates diverse counterfactual explanations
 
         :param query_instance: A dictionary of feature names and values. Test point of interest.
         :param total_CFs: Total number of counterfactuals required.
 
-        :param desired_class: Desired counterfactual class - can take 0 or 1. Default value is "opposite" to the outcome class of query_instance for binary classification.
+        :param desired_target: Desired target compared with the current predicted target. Desired_target = test_pred * 1.1
         :param proximity_weight: A positive float. Larger this weight, more close the counterfactuals are to the query_instance.
         :param diversity_weight: A positive float. Larger this weight, more diverse the counterfactuals are.
         :param categorical_penalty: A positive float. A weight to ensure that all levels of a categorical variable sums to 1.
@@ -92,10 +92,10 @@ class DicePyTorch(ExplainerBase):
         if([proximity_weight, diversity_weight, categorical_penalty] != self.hyperparameters):
             self.update_hyperparameters(proximity_weight, diversity_weight, categorical_penalty)
 
-        query_instance, test_pred = self.find_counterfactuals(query_instance, desired_class, optimizer, learning_rate, min_iter, max_iter, project_iter, loss_diff_thres, loss_converge_maxiter, verbose, init_near_query_instance, tie_random, stopping_threshold, posthoc_sparsity_param, posthoc_sparsity_algorithm)
+        query_instance, test_pred = self.find_counterfactuals(query_instance, desired_target, optimizer, learning_rate, min_iter, max_iter, project_iter, loss_diff_thres, loss_converge_maxiter, verbose, init_near_query_instance, tie_random, stopping_threshold, posthoc_sparsity_param, posthoc_sparsity_algorithm)
 
         return exp.CounterfactualExamples(self.data_interface, query_instance,
-        test_pred, self.final_cfs, self.cfs_preds, self.final_cfs_sparse, self.cfs_preds_sparse, posthoc_sparsity_param, desired_class)
+        test_pred, self.final_cfs, self.cfs_preds, self.final_cfs_sparse, self.cfs_preds_sparse, posthoc_sparsity_param, desired_target)
 
     def get_model_output(self, input_instance):
         """get output probability of ML model"""
@@ -294,7 +294,7 @@ class DicePyTorch(ExplainerBase):
             for i, v in enumerate(self.encoded_continuous_feature_indexes):
                 org_cont = (cf[v]*(self.cont_maxx[i] - self.cont_minx[i])) + self.cont_minx[i] # continuous feature in orginal scale
                 org_cont = round(org_cont, self.cont_precisions[i]) # rounding off
-                normalized_cont = (org_cont - self.cont_minx[i])/(self.cont_maxx[i] - self.cont_minx[i])
+                normalized_cont = (org_cont - self.cont_minx[i])/(self.cont_maxx[i] - self.cont_minx[i] + 1e-10)
                 cf[v] = normalized_cont # assign the projected continuous value
 
             for v in self.encoded_categorical_feature_indexes:
@@ -360,7 +360,7 @@ class DicePyTorch(ExplainerBase):
             self.loss_converge_iter = 0
             return False
 
-    def find_counterfactuals(self, query_instance, desired_class, optimizer, learning_rate, min_iter, max_iter, project_iter, loss_diff_thres, loss_converge_maxiter, verbose, init_near_query_instance, tie_random, stopping_threshold, posthoc_sparsity_param, posthoc_sparsity_algorithm):
+    def find_counterfactuals(self, query_instance, desired_target, optimizer, learning_rate, min_iter, max_iter, project_iter, loss_diff_thres, loss_converge_maxiter, verbose, init_near_query_instance, tie_random, stopping_threshold, posthoc_sparsity_param, posthoc_sparsity_algorithm):
         """Finds counterfactuals by graident-descent."""
 
         # Prepares user defined query_instance for DiCE.
@@ -370,9 +370,9 @@ class DicePyTorch(ExplainerBase):
 
         # find the predicted value of query_instance
         test_pred = self.predict_fn(torch.tensor(query_instance).float())[0]
-        if desired_class == "opposite":
-            desired_class = 1.0 - round(test_pred)
-        self.target_cf_class = torch.tensor(desired_class).float()
+
+        desired_pred = test_pred *  desired_target
+        self.target_cf_class = torch.tensor(desired_pred).float()
 
         self.min_iter = min_iter
         self.max_iter = max_iter
