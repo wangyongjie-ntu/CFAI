@@ -15,7 +15,7 @@ from cf.explainer_base import ExplainerBase
 
 class PlainCF(ExplainerBase):
 
-    def __init__(self, data_interface, model_interface, _lambda):
+    def __init__(self, data_interface, model_interface):
 
         """
         Init method
@@ -30,11 +30,10 @@ class PlainCF(ExplainerBase):
         self.model = model_interface
         self.model.load_model()
         self.model.set_eval_mode()
-        self._lambda = _lambda
         self.minx = torch.FloatTensor(self.data_interface.minx)
         self.maxx = torch.FloatTensor(self.data_interface.maxx)
 
-    def generate_counterfactuals(self, query_instance, desired_target, features_to_vary, feature_weights = None, optimizer = "adam", lr = 0.01, max_iter = 1000, dist_type = "l2", loss_diff_thres = 0):
+    def generate_counterfactuals(self, query_instance, desired_target, features_to_vary, feature_weights = None, _lambda = 100, optimizer = "adam", lr = 0.01, max_iter = 1000, dist_type = "l2", loss_diff_thres = 0):
 
         """Generates diverse counterfactual explanations
         
@@ -68,6 +67,7 @@ class PlainCF(ExplainerBase):
             self.feature_weights = torch.FloatTensor(feature_weights)
 
         self.dist_type = dist_type
+        self._lambda = _lambda
         
         query_instance = self.data_interface.normalize_data(query_instance)
         query_instance = torch.FloatTensor(query_instance)
