@@ -42,7 +42,7 @@ class PublicData:
         self.norm_features = self.feature_scaler.fit_transform(self.train_df.iloc[:, 0:-1])
         self.norm_targets = self.target_scaler.fit_transform(self.train_df.iloc[:, -1:])
 
-        if 'permitted_range' in params:
+        if 'permitted_range' in params: 
             self.permitted_range = params['permitted_range']
             if not self.check_features_range():
                 raise ValueError(
@@ -123,4 +123,13 @@ class PublicData:
             weights[idx] = float(value)
 
         return weights
+    def get_quantiles_from_training_data(self, quantile = 0.05, normalized = True):
+        
+        quantile = np.zeros(len(self.all_feature_names))
+        if normalized:
+            quantile = [np.quantile(abs(list(set(self.norm_features[i].tolist())) - np.median(list(set(self.norm_features[i].tolist())))), quantile) for i in self.norm_features]
+            return quantile
 
+        else:
+            quantile = [np.quantile(abs(list(set(self.norm_features[i].tolist())) - np.median(list(set(self.norm_features[i].tolist())))), quantile) for i in self.norm_features]
+            return quantile
