@@ -2,14 +2,13 @@
 
 A collection of methods on counterfactual explanation. Continously updating.
 
--[x] PlainCF
+- [x] PlainCF
 
--[x] DiCE
+- [x] DiCE
 
--[ ] 
+- [ ] 
 
--[ ]
-
+- [ ]
 
 ## Research Challenges
 
