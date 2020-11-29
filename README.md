@@ -11,9 +11,9 @@ I appreciate it very much if anyone can contribute to this project together with
 
 A collection of methods on counterfactual explanation I plan to add into this repository. Continously updating.
 
-- [x] PlainCF
+- [ ] PlainCF Working
 
-- [x] DiCE
+- [ ] DiCE Working
 
 - [ ] 
 
@@ -24,6 +24,21 @@ A collection of methods on counterfactual explanation I plan to add into this re
 **Installation Requirements**
 - Pytorch >= 1.0+
 - Python >= 3.6
+
+CF only supports Python3+. If you want to install the latest version, run the command in the root folder
+```
+git clone https://github.com/wangyongjie-ntu/Counterfactual-Explanations-Pytorch
+
+cd Counterfactual-Explanations-Pytorch
+
+pip install -e .
+```
+
+For the stable version installation, you can directly install it from PyPI via
+
+```
+pip install cf-explanations
+```
 
 
 # Getting Start
