@@ -1,6 +1,11 @@
-# Baselines_CF
+# Counterfacutal Explanations (Pytorch)
 
-A collection of methods on counterfactual explanation. Continously updating.
+Counterfactual explanations mainly target to find an explanation of a given instance, such that the explanation can change the prediction(Ususally from an undesirable outcome to an ideal one). The explanation itself is also a valid instance, or changing of current instance(can reduce to another instance implicitly) in the feature space. It has broad applications, E.g., finance, education etc.
+
+This task is popular recently. However, I cannot find any released repository on Pytorch platform. Hence, I create this project and plan to implement some algorithm continously. 
+I appreciate it very much if anyone can contribute to this project together with me.  For the implementation details, I am glad to discuss with all of you together.
+
+A collection of methods on counterfactual explanation I plan to add into this repository. Continously updating.
 
 - [x] PlainCF
 
@@ -10,17 +15,15 @@ A collection of methods on counterfactual explanation. Continously updating.
 
 - [ ]
 
-## Research Challenges
+## Usage
 
-The drawbacks of existing problems:
-
-- The efficiency. the running time is long.
-- The validity issue. 
-	- The search space: raw space, or latent space. 
-	- The search algorithm: greedy algorithm guided by gradient descent, or tree-based search?
-	- The cost function. Fixed cost? The fixed budget?
+To be done.
 
 ## References
+
+[1] 
+
+[2] 
 
 ## Acknowledge
 
