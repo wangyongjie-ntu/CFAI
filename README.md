@@ -11,13 +11,13 @@ I appreciate it very much if anyone can contribute to this project together with
 
 A collection of methods on counterfactual explanation to add into this repository. Continously updating.
 
-- [ ] PlainCF [Counterfactual explanations without opening the black box: Automated decisions and the GDPR](https://arxiv.org/pdf/1711.00399.pdf) [1]
+- [ ] PlainCF, [Counterfactual explanations without opening the black box: Automated decisions and the GDPR](https://arxiv.org/pdf/1711.00399.pdf) [1]
 
-- [ ] DiCE [Explaining machine learning classifiers through diverse counterfactual explanations]((https://arxiv.org/pdf/1905.07697.pdf)
+- [ ] DiCE, [Explaining machine learning classifiers through diverse counterfactual explanations]((https://arxiv.org/pdf/1905.07697.pdf)[2]
 
-- [ ] 
+- [ ] TBD,  
 
-- [ ]
+- [ ] TBD,
 
 # Installation
 
