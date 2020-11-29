@@ -9,11 +9,11 @@ Counterfactual explanations mainly target to find an explanation of a given inst
 This task is popular recently. However, I cannot find any released repository on Pytorch platform. Hence, I create this project and plan to implement some algorithm continously. 
 I appreciate it very much if anyone can contribute to this project together with me.  For the implementation details, I am glad to discuss with all of you together.
 
-A collection of methods on counterfactual explanation I plan to add into this repository. Continously updating.
+A collection of methods on counterfactual explanation to add into this repository. Continously updating.
 
-- [ ] PlainCF Working
+- [ ] PlainCF [Counterfactual explanations without opening the black box: Automated decisions and the GDPR](https://arxiv.org/pdf/1711.00399.pdf) [1]
 
-- [ ] DiCE Working
+- [ ] DiCE [Explaining machine learning classifiers through diverse counterfactual explanations]((https://arxiv.org/pdf/1905.07697.pdf)
 
 - [ ] 
 
