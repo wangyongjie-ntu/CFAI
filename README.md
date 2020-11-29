@@ -2,7 +2,7 @@
 ![versions](https://img.shields.io/pypi/pyversions/pybadges.svg)
 ![](https://img.shields.io/badge/PyTorch%20-%23EE4C2C.svg)
 
-#About Counterfacutal Explanations (Pytorch)
+# About Counterfacutal Explanations (Pytorch)
 
 Counterfactual explanations mainly target to find an explanation of a given instance, such that the explanation can change the prediction(Ususally from an undesirable outcome to an ideal one). The explanation itself is also a valid instance, or changing of current instance(can reduce to another instance implicitly) in the feature space. It has broad applications, E.g., finance, education etc.
 
@@ -45,14 +45,14 @@ pip install cf-explanations
 
 To be done.
 
-## References
+# References
 
 [1] Wachter, Sandra, Brent Mittelstadt, and Chris Russell. "Counterfactual explanations without opening the black box: Automated decisions and the GDPR." Harv. JL & Tech. 31 (2017): 841. [https://arxiv.org/pdf/1711.00399.pdf](https://arxiv.org/pdf/1711.00399.pdf)
 
 [2] Mothilal, Ramaravind K., Amit Sharma, and Chenhao Tan. "Explaining machine learning classifiers through diverse counterfactual explanations." Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency. 2020.
 [https://arxiv.org/pdf/1905.07697.pdf](https://arxiv.org/pdf/1905.07697.pdf)
 
-## Acknowledge
+# Acknowledge
 
 If any questions on this repo, please kindly let me know by email(yongjie.wang@ntu.edu.sg)
 
