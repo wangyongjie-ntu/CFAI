@@ -47,9 +47,10 @@ To be done.
 
 ## References
 
-[1] 
+[1] Wachter, Sandra, Brent Mittelstadt, and Chris Russell. "Counterfactual explanations without opening the black box: Automated decisions and the GDPR." Harv. JL & Tech. 31 (2017): 841. [https://arxiv.org/pdf/1711.00399.pdf](https://arxiv.org/pdf/1711.00399.pdf)
 
-[2] 
+[2] Mothilal, Ramaravind K., Amit Sharma, and Chenhao Tan. "Explaining machine learning classifiers through diverse counterfactual explanations." Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency. 2020.
+[https://arxiv.org/pdf/1905.07697.pdf](https://arxiv.org/pdf/1905.07697.pdf)
 
 ## Acknowledge
 
