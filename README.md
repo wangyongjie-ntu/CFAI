@@ -21,6 +21,8 @@ A collection of methods on counterfactual explanation to add into this repositor
 
 # Installation
 
+This is a half-year plan. The installation just serves as a placeholder.
+
 **Installation Requirements**
 - Pytorch >= 1.0+
 - Python >= 3.6
