@@ -13,7 +13,7 @@ A collection of methods on counterfactual explanation to add into this repositor
 
 - [ ] PlainCF, [Counterfactual explanations without opening the black box: Automated decisions and the GDPR](https://arxiv.org/pdf/1711.00399.pdf) [1]
 
-- [ ] DiCE, [Explaining machine learning classifiers through diverse counterfactual explanations]((https://arxiv.org/pdf/1905.07697.pdf)[2]
+- [ ] DiCE, [Explaining machine learning classifiers through diverse counterfactual explanations](https://arxiv.org/pdf/1905.07697.pdf)[2]
 
 - [ ] TBD,  
 
