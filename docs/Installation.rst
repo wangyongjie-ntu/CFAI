@@ -2,7 +2,7 @@ Installation
 ===============================
 
 PyPi
-====
+===============================
 
 .. code-block:: bash
 
@@ -10,7 +10,8 @@ PyPi
 
 
 Manual Installation
-===
+==============================
+
 Download or clone the repository:
 
 .. code:: bash
