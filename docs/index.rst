@@ -5,7 +5,11 @@ Counterfactual explanations mainly target to find an explanation of a given inst
 
 .. toctree::
     :maxdepth: 2
-    :caption: User Guide
+    :caption: Getting Started
+
+    Installation
+    Tutorials
+    
 
 Indices and tables
 ==================
