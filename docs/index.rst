@@ -7,10 +7,9 @@ Counterfactual explanations mainly target to find an explanation of a given inst
     :maxdepth: 2
     :caption: Getting Started
 
-    Installation
-    Tutorials
+    installation
+    tutorials
     
-
 Indices and tables
 ==================
 * :ref:`genindex`
