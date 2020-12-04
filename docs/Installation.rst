@@ -8,7 +8,6 @@ PyPi
 
     pip install cf-explanations
 
-
 Manual Installation
 ==============================
 
