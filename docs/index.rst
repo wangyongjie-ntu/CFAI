@@ -1,7 +1,9 @@
 About Counterfacutal Explanations (Pytorch)
 ================================
 
-Counterfactual explanations mainly target to find an explanation of a given instance, such that the explanation can change the prediction(Ususally from an undesirable outcome to an ideal one). The explanation itself is also a valid instance, or changing of current instance(can reduce to another instance implicitly) in the feature space. It has broad applications, E.g., finance, education etc.
+Counterfactual explanations mainly target to find the mimimum perturbation which changes the original prediction(Ususlly from an undesirable prediction to ideal one). The perturbation itself is a valid instance following the real data distribution as the training samples. It has broad applications, E.g., finance, education, health care ect. Specifically, what should I do to get the credit card approved if I received the rejection. 
+
+This project will cover some interesting and useful algorithms, mostly on Pytorch platform. 
 
 .. note::
 
