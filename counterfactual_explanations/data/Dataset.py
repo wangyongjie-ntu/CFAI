@@ -86,6 +86,7 @@ class Dataset(object):
             one_hot_encoded_data = self.data_df
             self.one_hot_encoded_names = self.feature_names
         
+        self.encoded_categorical_feature_indices = self.get_encoded_categorial_feaure_indices()
         # The column name is reordered after one-hot encoding.
         one_hot_x = one_hot_encoded_data[self.one_hot_encoded_names].values
         one_hot_y = one_hot_encoded_data[self.outcome_name].values
@@ -97,7 +98,7 @@ class Dataset(object):
         if 'scaler' in params:
             self.scaler = params['scaler']
             self.scaler.fit(self.train_x)
-            self.train_scaled_x, self.test_scaled_x = self.scaler.transform(self.train_x), self.scaler.transform(self.test_x)
+            self.train_scaled_x, self.test_scaled_x = self.scaler.transform(self.train_x.astype(np.float32)), self.scaler.transform(self.test_x.astype(np.float32))
 
         if len(self.continuous_features_names) > 0:
             self.permitted_range_before_scale = [self.train_x[:, list(range(len(self.continuous_features_names)))].min(0),
@@ -107,7 +108,7 @@ class Dataset(object):
 
     def normalize_data(self, input_x):
         try:
-            return self.scaler.transform(input_x)
+            return self.scaler.transform(input_x.astype(np.float32)) # the scaler always returns the float64
         except:
             raise ValueError('scaler is not provided in normalization')
 
@@ -120,9 +121,14 @@ class Dataset(object):
     def get_mads(self, normalized = False):
 
         if not normalized:
-            self.mads = np.median(self.train_x - np.median(self.train_x, 0), 0)
+            self.mads = np.median(abs(self.train_x - np.median(self.train_x, 0)), 0)
         else:
-            self.mads = np.median(self.train_scaled_x - np.median(self.train_scaled_x, 0), 0)
+            self.mads = np.median(abs(self.train_scaled_x - np.median(self.train_scaled_x, 0)), 0)
+
+        # replace the 0 mad to 1. Do we need to compute the mads of normalized data? 
+        idx = np.argwhere((self.mads - 0) < 1e-5)
+        np.put_along_axis(self.mads[np.newaxis, ], idx, 1, 1)
+        return self.mads
 
     def get_mask_of_features_to_vary(self, features_to_vary = ['all']):
 
@@ -138,6 +144,20 @@ class Dataset(object):
                         break
 
             return mask
+
+    def get_indices_of_features_to_vary(self, features_to_vary = ['all']):
+
+        indices = []
+        if features_to_vary == ['all']:
+            indices = list(range(len(self.one_hot_encoded_names)))
+        else:
+            for i in range(len(self.one_hot_encoded_names)):
+                for feature in features_to_vary:
+                    if self.one_hot_encoded_names[i].startswith(feature):
+                        indices.append(i)
+                        break
+
+        return indices
 
     def get_weight_of_features_to_vary(self, features_weights):
         """
@@ -179,6 +199,15 @@ class Dataset(object):
         sorted_indices, sorted_columns = list(zip(*sorted_pairs))
 
         return out[list(sorted_columns)]
+
+    def get_encoded_categorial_feaure_indices(self):
+
+        cols = []
+        for col_parent in self.categorical_feature_names:
+            temp = [self.one_hot_encoded_names.index(col) for col in self.one_hot_encoded_names if col.startswith(col_parent) and col not in self.continuous_features_names]
+            cols.append(temp)
+
+        return cols
     
     def get_quantiles_from_data(self, quantile = 0.05, normalized = True):
 
