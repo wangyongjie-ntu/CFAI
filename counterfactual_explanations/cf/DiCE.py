@@ -22,7 +22,7 @@ class DiCE(ExplainerBase):
 
         super().__init__(data_interface, model_interface) # initiating data related parameters
 
-    def generate_counterfactuals(self, query_instance, total_CFs, desired_class="opposite", proximity_weight=0.5, diversity_weight=1.0, categorical_penalty=0.1, features_to_vary="all", yloss_type="hinge_loss", diversity_loss_type="dpp_style:inverse_dist", optimizer="adam", learning_rate=0.05, min_iter=500, max_iter=5000, project_iter=0, loss_diff_thres=1e-5, loss_converge_maxiter=1, verbose=False, init_near_query_instance=True, tie_random=False, stopping_threshold=0.5): 
+    def generate_counterfactuals(self, query_instance, total_CFs, desired_class="opposite", proximity_weight=0.5, diversity_weight=1.0, categorical_penalty=0.1, features_to_vary="all", yloss_type="hinge_loss", diversity_loss_type="dpp_style:inverse_dist", optimizer="adam", learning_rate=0.05, min_iter=500, max_iter=5000, loss_diff_thres=1e-5, loss_converge_maxiter=1, verbose=False, init_near_query_instance=True, tie_random=False, stopping_threshold=0.5): 
 
         """Generates diverse counterfactual explanations
 
@@ -42,7 +42,6 @@ class DiCE(ExplainerBase):
         :param learning_rate: Learning rate for optimizer.
         :param min_iter: Min iterations to run gradient descent for.
         :param max_iter: Max iterations to run gradient descent for.
-        :param project_iter: Project the gradients at an interval of these many iterations.
         :param loss_diff_thres: Minimum difference between successive loss values to check convergence.
         :param loss_converge_maxiter: Maximum number of iterations for loss_diff_thres to hold to declare convergence. Defaults to 1, but we assigned a more conservative value of 2 in the paper.
         :param verbose: Print intermediate loss value.
@@ -70,7 +69,9 @@ class DiCE(ExplainerBase):
                 cf_instances = torch.randn(total_CFs, query_instance.shape[1])
         else: # initialize around the query instances
             cf_instances = query_instance.repeat(total_CFs, 1)
-            cf_instances += torch.randn(total_CFs, query_instance.shape[1]) * 0.01
+            for i in range(1, total_CFs):
+                cf_instances[i] = cf_instances[i] + 0.01 * i
+            #cf_instances += torch.randn(total_CFs, query_instance.shape[1]) * 0.1
 
         cf_instances = torch.FloatTensor(cf_instances)
         cf_instances = mask * cf_instances + (1 - mask) * query_instance
@@ -82,11 +83,15 @@ class DiCE(ExplainerBase):
         self.feature_weights_list = np.ones((1, query_instance.shape[1]))
         mads = self.data_interface.get_mads(normalized = True)
         inverse_mads = 1 / mads
+        inverse_mads = np.round(inverse_mads, 2)
+        self.feature_weights_list = torch.from_numpy(inverse_mads)
+        '''
         indices_features_to_vary = self.data_interface.get_indices_of_features_to_vary(features_to_vary)
         indices_features_to_vary = np.array([indices_features_to_vary])
         inverse_mads_selected = np.take_along_axis(inverse_mads[np.newaxis, :], indices_features_to_vary, 1)
         np.put_along_axis(self.feature_weights_list, indices_features_to_vary, inverse_mads_selected, 1)
-        self.feature_weights_list = torch.from_numpy(self.feature_weights_list)
+        self.feature_weights_list = torch.from_numpy(self.feature_weights_list) # not equal
+        '''
 
         # specify the optimizer 
         if optimizer == 'adam':
@@ -103,7 +108,6 @@ class DiCE(ExplainerBase):
 
         self.min_iter = min_iter
         self.max_iter = max_iter
-        self.project_iter = project_iter
         self.loss_diff_thres = loss_diff_thres
         # no. of iterations to wait to confirm that loss has converged
         self.loss_converge_maxiter = loss_converge_maxiter
@@ -130,25 +134,19 @@ class DiCE(ExplainerBase):
         iterations = 0
         loss_diff = 0
         prev_loss = 0
-        while self.stop_loop(iterations, loss_diff) is False:
+        while self.stop_loop(iterations, loss_diff, cf_instances) is False:
             
             cf_instances.requires_grad = True
             # zero all existing gradients
             self.optimizer.zero_grad()
             # get loss and backpropogate
             loss_value = self.compute_loss(query_instance, cf_instances, proximity_weight, diversity_weight, categorical_penalty)
-            loss_value.backward()
+            loss_value.backward(retain_graph = True)
 
             cf_instances.grad = cf_instances.grad * mask
             # update the variables
             self.optimizer.step()
 
-            # clamp
-            if isinstance(self.data_interface.scaler, MinMaxScaler):
-                cf_instances = torch.where(cf_instances > 1, torch.ones_like(cf_instances), cf_instances)
-                cf_instances = torch.where(cf_instances < 0, torch.zeros_like(cf_instances), cf_instances)
-
-            cf_instances.detach_()
             if verbose:
                 if (iterations) % 50 == 0:
                     print('step %d,  loss=%g' % (iterations+1, loss_value))
@@ -157,39 +155,49 @@ class DiCE(ExplainerBase):
             prev_loss = loss_value
             iterations += 1
     
+        # clamp
+        if isinstance(self.data_interface.scaler, MinMaxScaler):
+            cf_instances = torch.where(cf_instances > 1, torch.ones_like(cf_instances), cf_instances)
+            cf_instances = torch.where(cf_instances < 0, torch.zeros_like(cf_instances), cf_instances)
+
         return cf_instances
 
     def compute_yloss(self, cf_instances):
-        """Computes the first part (y-loss) of the loss function."""
-        yloss = 0.0
-        for i in range(self.total_CFs):
-            if self.yloss_type == "l2_loss":
-                temp_loss = torch.pow((self.model_interface.predict_tensor(cf_instances[i:i+1])[1] - self.target_cf_class), 2)
-            elif self.yloss_type == "log_loss":
-                temp_logits = torch.log((abs(self.model_interface.predict_tensor(cf_instances[i:i+1])[1] - 0.000001))/(1 - abs(self.model_interface.predict_tensor(cf_instances[i:i+1])[1] - 0.000001)))
-                criterion = torch.nn.BCEWithLogitsLoss()
-                temp_loss = criterion(temp_logits, torch.tensor([self.target_cf_class]))
-            elif self.yloss_type == "hinge_loss":
-                temp_logits = torch.log((abs(self.model_interface.predict_tensor(cf_instances[i:i+1])[1] - 0.000001))/(1 - abs(self.model_interface.predict_tensor(cf_instances[i:i+1])[1] - 0.000001)))
-                criterion = torch.nn.ReLU()
-                all_ones = torch.ones_like(self.target_cf_class)
-                labels = 2 * self.target_cf_class - all_ones
-                temp_loss = all_ones - torch.mul(labels, temp_logits)
-                temp_loss = torch.norm(criterion(temp_loss))
+        yloss = 0
+        if self.yloss_type == 'l2_loss':
+            yloss = torch.pow((self.model_interface.predict_tensor(cf_instances)[1] - self.target_cf_class), 2)
+        elif self.yloss_type == "log_loss":
+            logits = torch.log(torch.abs(self.model_interface.predict_tensor(cf_instances)[1] - 1e-6) / torch.abs(1 - self.model_interface.predict_tensor(cf_instances)[1] - 1e-6))
+            criterion = torch.nn.BCEWithLogitsLoss()
+            yloss = criterion(logits, self.target_cf_class.repeat(self.total_CFs))
 
-            yloss += temp_loss
-
-        return yloss/self.total_CFs
+        elif self.yloss_type == 'hinge_loss':
+            logits = torch.log(torch.abs(self.model_interface.predict_tensor(cf_instances)[1] - 1e-6) / torch.abs(1 - self.model_interface.predict_tensor(cf_instances)[1] - 1e-6))
+            criterion = torch.nn.ReLU()
+            all_ones = torch.ones_like(self.target_cf_class)
+            labels = 2 * self.target_cf_class - all_ones
+            temp_loss = all_ones - torch.mul(labels, logits)
+            yloss = criterion(temp_loss)
+            #y_loss = torch.norm(criterion(temp_loss), axis = 1)
+    
+        return yloss.mean()
 
     def compute_proximity_loss(self, query_instance, cf_instances):
         """compute weighted distance between query intances and counterfactual explanations"""
         return torch.mean(torch.abs(cf_instances - query_instance) * self.feature_weights_list)
 
+    def compute_dist(self, x1, x2):
+        return torch.sum(torch.mul(torch.abs(x1 - x2), self.feature_weights_list), dim = 0)
+
     def dpp_style(self, cf_instances, submethod):
         """Computes the DPP of a matrix."""
 
-        det_entries = torch.mm(cf_instances, cf_instances.T)
-        if submethod == "inverse_mads":
+        det_entries = torch.ones(self.total_CFs, self.total_CFs)
+        for i in range(self.total_CFs):
+            for j in range(self.total_CFs):
+                det_entries[i, j] = self.compute_dist(cf_instances[i], cf_instances[j])
+
+        if submethod == "inverse_dist":
             det_entries = 1.0 / (1.0 + det_entries)
         if submethod == "exponential_dist":
             det_entries = 1.0 / (torch.exp(det_entries))
@@ -210,10 +218,11 @@ class DiCE(ExplainerBase):
 
     def compute_regularization_loss(self, cf_instances):
         """Adds a linear equality constraints to the loss functions - to ensure all levels of a categorical variable sums to one"""
+        regularization_loss = 0
         for v in self.data_interface.encoded_categorical_feature_indices:
-            regularization_loss = torch.pow((torch.sum(cf_instances[:, v[0]:v[-1]+1]) - 1.0), 2)
+            regularization_loss += torch.sum(torch.pow((torch.sum(cf_instances[:, v[0]:v[-1]+1], axis = 1) - 1.0), 2))
 
-        return regularization_loss.mean()
+        return regularization_loss
 
     def compute_loss(self, query_instance, cf_instances, proximity_weight, diversity_weight, categorical_penalty):
         """Computes the overall loss"""
