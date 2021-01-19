@@ -15,9 +15,11 @@ A collection of methods on counterfactual explanation to add into this repositor
 
 - [x] DiCE, [Explaining machine learning classifiers through diverse counterfactual explanations](https://arxiv.org/pdf/1905.07697.pdf)[2]
 
-- [ ] REVISE, [Towards Realistic Individual Recourse and Actionable Explanations in Black-Box Decision Making Systems](https://arxiv.org/pdf/1907.09615.pdf)[3]
+- [x] Growing Sphere, [Inverse Classification for Comparison-based Interpretability in Machine Learning](https://arxiv.org/abs/1712.08443)[3]
 
-- [ ] CEM, [Explanations based on the Missing: Towards contrastive explanations with pertinent negatives](https://papers.nips.cc/paper/2018/file/c5ff2543b53f4cc0ad3819a36752467b-Paper.pdf)[4]
+- [ ] REVISE, [Towards Realistic Individual Recourse and Actionable Explanations in Black-Box Decision Making Systems](https://arxiv.org/pdf/1907.09615.pdf)[4]
+
+- [ ] CEM, [Explanations based on the Missing: Towards contrastive explanations with pertinent negatives](https://papers.nips.cc/paper/2018/file/c5ff2543b53f4cc0ad3819a36752467b-Paper.pdf)[5]
 
 # Installation
 
@@ -54,9 +56,11 @@ To be done.
 [2] Mothilal, Ramaravind K., Amit Sharma, and Chenhao Tan. "Explaining machine learning classifiers through diverse counterfactual explanations." Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency. 2020.
 [https://arxiv.org/pdf/1905.07697.pdf](https://arxiv.org/pdf/1905.07697.pdf)
 
-[3] Joshi, Shalmali, et al. "Towards realistic individual recourse and actionable explanations in black-box decision making systems." arXiv preprint arXiv:1907.09615 (2019). [https://arxiv.org/pdf/1907.09615.pdf](https://arxiv.org/pdf/1907.09615.pdf)
+[3] Laugel, Thibault, et al. "Inverse classification for comparison-based interpretability in machine learning." arXiv preprint arXiv:1712.08443 (2017).[https://arxiv.org/abs/1712.08443](https://arxiv.org/abs/1712.08443)
 
-[4] Dhurandhar, Amit, et al. "Explanations based on the missing: Towards contrastive explanations with pertinent negatives." Advances in neural information processing systems 31 (2018): 592-603. [https://papers.nips.cc/paper/2018/file/c5ff2543b53f4cc0ad3819a36752467b-Paper.pdf](https://papers.nips.cc/paper/2018/file/c5ff2543b53f4cc0ad3819a36752467b-Paper.pdf)
+[4] Joshi, Shalmali, et al. "Towards realistic individual recourse and actionable explanations in black-box decision making systems." arXiv preprint arXiv:1907.09615 (2019). [https://arxiv.org/pdf/1907.09615.pdf](https://arxiv.org/pdf/1907.09615.pdf)
+
+[5] Dhurandhar, Amit, et al. "Explanations based on the missing: Towards contrastive explanations with pertinent negatives." Advances in neural information processing systems 31 (2018): 592-603. [https://papers.nips.cc/paper/2018/file/c5ff2543b53f4cc0ad3819a36752467b-Paper.pdf](https://papers.nips.cc/paper/2018/file/c5ff2543b53f4cc0ad3819a36752467b-Paper.pdf)
 
 # Acknowledge
 
