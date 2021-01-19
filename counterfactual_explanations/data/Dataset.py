@@ -5,6 +5,7 @@
 
 import pandas as pd
 import numpy as np
+from numpy.linalg import norm
 from sklearn.model_selection import train_test_split
 from scipy import stats
 
@@ -43,10 +44,14 @@ class Dataset(object):
         if 'custom_preprocessing' in params:
             self.df = params['custom_preprocessing'](self.data_df.copy())
 
-        if type(params['continuous_features']) is list:
-            self.continuous_features_names = params['continuous_features']
+        if params['continuous_features'] == 'all':
+            self.continuous_features_names = self.data_df.columns.tolist()
+            self.continuous_features_names.remove(self.outcome_name)
         else:
-            raise ValueError('The continuous_features is not provided')
+            if type(params['continuous_features']) is list:
+                self.continuous_features_names = params['continuous_features']
+            else:
+                raise ValueError('The continuous_features is not provided')
 
         self.categorical_feature_names = [name for name in self.data_df.columns.tolist()
                 if name not in self.continuous_features_names + [self.outcome_name]]
@@ -80,18 +85,18 @@ class Dataset(object):
         
         if len(self.categorical_feature_names) > 0:
             one_hot_encoded_data = pd.get_dummies(data = self.data_df, columns = self.categorical_feature_names)
-            self.one_hot_encoded_names  = one_hot_encoded_data.columns.tolist()
-            self.one_hot_encoded_names.remove(self.outcome_name)
+            self.onehot_encoded_names  = one_hot_encoded_data.columns.tolist()
+            self.onehot_encoded_names.remove(self.outcome_name)
         else:
             one_hot_encoded_data = self.data_df
-            self.one_hot_encoded_names = self.feature_names
+            self.onehot_encoded_names = self.feature_names
         
         self.encoded_categorical_feature_indices = self.get_encoded_categorial_feaure_indices()
         # The column name is reordered after one-hot encoding.
-        one_hot_x = one_hot_encoded_data[self.one_hot_encoded_names].values
+        one_hot_x = one_hot_encoded_data[self.onehot_encoded_names].values
         one_hot_y = one_hot_encoded_data[self.outcome_name].values
 
-        self.train_x, self.test_x, self.train_y, self.test_y = train_test_split(one_hot_x, one_hot_y, test_size = self.test_size, random_state = self.random_state)
+        self.train_x, self.test_x, self.train_y, self.test_y = train_test_split(one_hot_x, one_hot_y, test_size = self.test_size, shuffle = False, random_state = self.random_state)
         
          
         # scale the raw data
@@ -132,16 +137,21 @@ class Dataset(object):
 
     def get_mask_of_features_to_vary(self, features_to_vary = ['all']):
 
-        mask = np.ones(len(self.one_hot_encoded_names))
+        mask = np.ones(len(self.onehot_encoded_names))
         if features_to_vary == ['all']:
             return mask
         else:
-            for i in range(len(self.one_hot_encoded_names)):
+            for i in range(len(self.onehot_encoded_names)):
                 mask[i] = 0
                 for feature in features_to_vary:
-                    if self.one_hot_encoded_names[i].startswith(feature):
-                        mask[i] = 1
-                        break
+                    if self.onehot_encoded_names[i] in self.continuous_features_names:
+                        if self.onehot_encoded_names[i] == feature:
+                            mask[i] = 1
+                            break
+                    else:
+                        if self.onehot_encoded_names[i].startswith(feature):
+                            mask[i] = 1
+                            break
 
             return mask
 
@@ -149,13 +159,18 @@ class Dataset(object):
 
         indices = []
         if features_to_vary == ['all']:
-            indices = list(range(len(self.one_hot_encoded_names)))
+            indices = list(range(len(self.onehot_encoded_names)))
         else:
-            for i in range(len(self.one_hot_encoded_names)):
+            for i in range(len(self.onehot_encoded_names)):
                 for feature in features_to_vary:
-                    if self.one_hot_encoded_names[i].startswith(feature):
-                        indices.append(i)
-                        break
+                    if self.onehot_encoded_names[i] in self.continuous_features_names:
+                        if self.onehot_encoded_names[i] == feature:
+                            indices.append(i)
+                            break
+                    else:
+                        if self.onehot_encoded_names[i].startswith(feature):
+                            indices.append(i)
+                            break
 
         return indices
 
@@ -164,10 +179,10 @@ class Dataset(object):
         features_weigths: dictionary 
         """
 
-        weights = np.ones(len(self.one_hot_encoded_names))
-        for i in range(len(self.one_hot_encoded_names)):
+        weights = np.ones(len(self.onehot_encoded_names))
+        for i in range(len(self.onehot_encoded_names)):
             for key, value in features_weights.items():
-                if self.one_hot_encoded_names[i].startswith(key):
+                if self.onehot_encoded_names[i].startswith(key):
                     weights[i] = float(value)
 
         return weights
@@ -179,7 +194,7 @@ class Dataset(object):
 
         if isinstance(data, np.ndarray):
             index = list(range(len(data)))
-            data = pd.DataFrame(data = data, index = index, columns = self.one_hot_encoded_names)
+            data = pd.DataFrame(data = data, index = index, columns = self.onehot_encoded_names)
         
         out = data.copy()
         for feat in self.categorical_feature_names:
@@ -198,20 +213,25 @@ class Dataset(object):
         sorted_pairs = sorted(pairs, key = lambda t:t[0])
         sorted_indices, sorted_columns = list(zip(*sorted_pairs))
 
-        return out[list(sorted_columns)]
+        decoded_data = out[list(sorted_columns)]
+        for i in decoded_data.columns:
+            if self.data_df[i].dtypes == np.int32 or self.data_df[i].dtypes == np.int64:
+                decoded_data[i] = decoded_data[i].round().astype(self.data_df[i].dtypes, copy = False)
+
+        return decoded_data
 
     def get_encoded_categorial_feaure_indices(self):
 
         cols = []
         for col_parent in self.categorical_feature_names:
-            temp = [self.one_hot_encoded_names.index(col) for col in self.one_hot_encoded_names if col.startswith(col_parent) and col not in self.continuous_features_names]
+            temp = [self.onehot_encoded_names.index(col) for col in self.onehot_encoded_names if col.startswith(col_parent) and col not in self.continuous_features_names]
             cols.append(temp)
 
         return cols
     
     def get_quantiles_from_data(self, quantile = 0.05, normalized = True):
 
-        quantile = np.zeros(len(self.one_hot_encoded_names))
+        quantile = np.zeros(len(self.onehot_encoded_names))
         if normalized:
             quantile = []
         else:
@@ -219,33 +239,78 @@ class Dataset(object):
 
         return quantile
 
-    def compute_continuous_percentile_shift(self, source, target, normalized = False, method = 'sum'):
+    def compute_continuous_percentile_shift(self, source, target, features_to_vary, normalized = False, method = 'sum'):
 
-        countinous_shift = np.zeros(len(self.continuous_features_names))
+        continuous_shift = np.zeros(len(self.continuous_features_names)).astype(np.float32)
         for i in range(len(self.continuous_features_names)):
-
-            if normalized:
-                source_percentile = stats.percentileofscore(self.train_scaled_x[:, i], source[:, i])
-                target_percentile = stats.percentileofscore(self.train_scaled_x[:, i], target[:, i])
-                countinous_shift[i] = np.abs(source_percentile - target_percentile)
+            if self.continuous_features_names[i] in features_to_vary:
+                if normalized:
+                    source_percentile = stats.percentileofscore(self.train_scaled_x[:, i], source[:, i])
+                    target_percentile = stats.percentileofscore(self.train_scaled_x[:, i], target[:, i])
+                    continuous_shift[i] = np.abs(source_percentile - target_percentile)
+                else:
+                    source_percentile = stats.percentileofscore(self.train_x[:, i], source[:, i])
+                    target_percentile = stats.percentileofscore(self.train_x[:, i], target[:, i])
+                    continuous_shift[i] = np.abs(source_percentile - target_percentile)
             else:
-                source_percentile = stats.percentileofscore(self.train_x[:, i], source[:, i])
-                target_percentile = stats.percentileofscore(self.train_x[:, i], target[:, i])
-                countinous_shift[i] = np.abs(source_percentile - target_percentile)
-        
+                continue
+
+        continuous_shift = continuous_shift / 100
         if method == "sum":
-            score = np.sum(countinous_shift)
-        else:
-            score = np.max(countinous_shift)
+            score = np.mean(continuous_shift)
+        elif method == "max":
+            score = np.max(continuous_shift)
 
         return score
 
     def compute_categorical_changes(self, source, target):
 
         source, target = self.onehot_decode(source), self.onehot_decode(target)
-        match = (source[self.categorical_feature_names] != target[self.categorical_feature_names]).values.sum(1)
+        match = (source[self.categorical_feature_names].values != target[self.categorical_feature_names].values)
         categorical_change = np.mean(match)
         return categorical_change
+
+    def compute_sparsity(self, source, target):
+        return (source == target).values.sum()
+        
+    def compute_actionability_score(self, source, target, features_to_vary, continous_rules, categorical_rules):
+        scores = np.zeros(len(features_to_vary))
+        for i in range(len(features_to_vary)):
+            feature = features_to_vary[i]
+            if feature in continous_rules:
+                source_value = source.iloc[0][feature]
+                target_value = target[feature]
+                
+                if continous_rules[feature]:
+                    if target_value > source_value:
+                        scores[i] = 1
+                    elif target_value == source_value:
+                        scores[i] = 0
+                    else:
+                        scores[i] = -1
+                else:
+                    if target_value < source_value:
+                        scores[i] = 1
+                    elif target_value == source_value:
+                        scores[i] = 0
+                    else:
+                        scores[i] = -1
+
+            elif feature in categorical_rules:
+                source_value = categorical_rules[feature][source.iloc[0][feature]]
+                target_value = categorical_rules[feature][target[feature]]
+                if target_value > source_value:
+                    scores[i] = 1
+                elif target_value == source_value:
+                    scores[i] = 0
+                else:
+                    scores[i] = -1
+            else:
+                continue
+
+        score = scores.sum() / (target != source).values.sum()
+
+        return score
 
     def prepare_query(self, query_instance, normalized = False):
         
@@ -256,8 +321,8 @@ class Dataset(object):
         else:
             raise ValueError("unsupported data type of query_instance")
     
-        tmp  = np.zeros((1, len(self.one_hot_encoded_names)))
-        onehot_test = pd.DataFrame(tmp, columns = self.one_hot_encoded_names)
+        tmp  = np.zeros((1, len(self.onehot_encoded_names)))
+        onehot_test = pd.DataFrame(tmp, columns = self.onehot_encoded_names)
 
         for name, content in test.items():
             if content.dtype == np.float64 or content.dtype == np.float32:
