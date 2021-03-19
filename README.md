@@ -41,7 +41,7 @@ pip install -e .
 For the stable version installation, you can directly install it from PyPI via
 
 ```
-pip install cf-explanations
+pip install cfai
 ```
 
 
