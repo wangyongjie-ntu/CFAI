@@ -1,3 +1,7 @@
+![CFAI Logo](https://github.com/wangyongjie-ntu/CFAI/blob/main/cfai.png)
+
+<hr/>
+
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-YES-green.svg)](https://github.com/wangyongjie-ntu/Awesome-explainable-AI/graphs/commit-activity)
 ![versions](https://img.shields.io/pypi/pyversions/pybadges.svg)
 ![](https://img.shields.io/badge/PyTorch%20-%23EE4C2C.svg)
