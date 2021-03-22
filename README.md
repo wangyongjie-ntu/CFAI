@@ -1,4 +1,4 @@
-![CFAI Logo](https://github.com/wangyongjie-ntu/CFAI/blob/main/cfai.png)
+![CFAI Logo](https://github.com/wangyongjie-ntu/CFAI/blob/main/CFAI_Logo.png)
 
 <hr/>
 
@@ -35,9 +35,9 @@ This is a half-year plan. The installation just serves as a placeholder.
 
 CF only supports Python3+. If you want to install the latest version, run the command in the root folder
 ```
-git clone https://github.com/wangyongjie-ntu/Counterfactual-Explanations-Pytorch
+git clone https://github.com/wangyongjie-ntu/CFAI
 
-cd Counterfactual-Explanations-Pytorch
+cd CFAI
 
 pip install -e .
 ```
