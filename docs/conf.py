@@ -17,7 +17,7 @@ import sys
 
 # -- Project information -----------------------------------------------------
 
-project = 'Counterfactual-Explanations-Pytorch'
+project = 'CFAI'
 copyright = '2020 - 2022, Wang Yongjie'
 author = 'Wang Yongjie'
 
